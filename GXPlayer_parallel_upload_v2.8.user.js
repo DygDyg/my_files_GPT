@@ -2,7 +2,7 @@
 // @name         GXPlayer parallel upload auto + sound
 // @description	 Добавляет паралельную загрузку файлов насайт GXPlayer
 // @namespace    gxplayer-parallel-upload
-// @version      2.8
+// @version      2.9
 // @match        https://gxplayer.xyz/users/upload.php*
 // @icon         https://gxplayer.xyz/favicon.ico
 // @run-at       document-idle
@@ -101,7 +101,14 @@
     panel.id = 'gx-side-stats';
     panel.innerHTML = `
       <div class="gx-side-title">⚡ Parallel upload</div>
-      <div class="gx-side-row gx-stream-row"><label for="gx-concurrency-input">Потоки</label><input id="gx-concurrency-input" type="number" min="1" max="20" step="1" value="${concurrency}" title="Количество одновременных загрузок (1–20)"></div>
+      <div class="gx-side-row gx-stream-row">
+        <label for="gx-concurrency-input">Потоки</label>
+        <div class="gx-stream-control">
+          <button type="button" class="gx-step-btn" id="gx-step-down" aria-label="Уменьшить потоки" title="Уменьшить потоки">−</button>
+          <input id="gx-concurrency-input" type="number" min="1" max="20" step="1" value="${concurrency}" title="Количество одновременных загрузок (1–20)">
+          <button type="button" class="gx-step-btn" id="gx-step-up" aria-label="Увеличить потоки" title="Увеличить потоки">+</button>
+        </div>
+      </div>
       <div class="gx-side-row"><span>Скорость</span><b id="gx-speed">0</b><span class="gx-unit">Mbps</span></div>
       <div class="gx-side-row"><span>Режим</span><button type="button" id="gx-mode">${manualConcurrency ? 'Ручной' : 'Авто'}</button></div>
       <div class="gx-side-row"><span>Настройка</span><b id="gx-auto-status">${manualConcurrency ? 'Зафиксировано' : 'Прогрев'}</b></div>
@@ -125,6 +132,14 @@
       updatePanel();
     });
     const streamInput = panel.querySelector('#gx-concurrency-input');
+    panel.querySelector('#gx-step-down').addEventListener('click', () => {
+      streamInput.value = Math.max(1, concurrency - 1);
+      streamInput.dispatchEvent(new Event('change', { bubbles: true }));
+    });
+    panel.querySelector('#gx-step-up').addEventListener('click', () => {
+      streamInput.value = Math.min(USER_MAX_CONCURRENCY, concurrency + 1);
+      streamInput.dispatchEvent(new Event('change', { bubbles: true }));
+    });
     streamInput.addEventListener('change', () => {
       const requested = Number(streamInput.value);
       if (!Number.isFinite(requested)) {
@@ -162,15 +177,96 @@
         box-shadow: 0 8px 24px rgba(0,0,0,.35) !important;
         pointer-events: auto !important;
       }
-      #gx-concurrency-input {
-        width: 66px !important;
-        height: 28px !important;
-        border: 1px solid #566780 !important;
-        border-radius: 6px !important;
+      #gx-side-stats .gx-stream-control {
+        display: inline-flex !important;
+        align-items: center !important;
+        gap: 0 !important;
+        height: 30px !important;
+        overflow: hidden !important;
+        border: 1px solid #3a4c68 !important;
+        border-radius: 8px !important;
         background: #0d1626 !important;
-        color: white !important;
+      }
+      #gx-side-stats #gx-concurrency-input {
+        width: 34px !important;
+        min-width: 0 !important;
+        height: 28px !important;
+        box-sizing: border-box !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        border: 0 !important;
+        outline: 0 !important;
+        border-radius: 0 !important;
+        background: transparent !important;
+        color: #fff !important;
         text-align: center !important;
-        font-size: 13px !important;
+        font: 600 13px/28px system-ui,sans-serif !important;
+        appearance: textfield !important;
+        -moz-appearance: textfield !important;
+      }
+      #gx-side-stats #gx-concurrency-input::-webkit-inner-spin-button,
+      #gx-side-stats #gx-concurrency-input::-webkit-outer-spin-button {
+        -webkit-appearance: none !important;
+        margin: 0 !important;
+      }
+      #gx-side-stats .gx-step-btn {
+        display: grid !important;
+        place-items: center !important;
+        width: 29px !important;
+        min-width: 29px !important;
+        height: 28px !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        border: 0 !important;
+        border-radius: 0 !important;
+        background: transparent !important;
+        color: #a9bdd7 !important;
+        font: 600 18px/1 system-ui,sans-serif !important;
+        cursor: pointer !important;
+        box-shadow: none !important;
+        transition: background .16s,color .16s !important;
+      }
+      #gx-side-stats .gx-step-btn:hover {
+        background: #263a56 !important;
+        color: #fff !important;
+      }
+      #gx-side-stats .gx-step-btn:active { background: #38577d !important; }
+      #gx-side-stats .gx-step-btn:focus-visible,
+      #gx-side-stats #gx-mode:focus-visible {
+        outline: 2px solid #74b9ff !important;
+        outline-offset: -2px !important;
+      }
+      #gx-side-stats #gx-mode {
+        display: inline-flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        min-width: 83px !important;
+        height: 28px !important;
+        box-sizing: border-box !important;
+        padding: 0 12px !important;
+        margin: 0 !important;
+        border: 1px solid #36547b !important;
+        border-radius: 16px !important;
+        background: #233b5d !important;
+        color: #d8eaff !important;
+        font: 600 12px/1 system-ui,sans-serif !important;
+        cursor: pointer !important;
+        box-shadow: none !important;
+        transition: background .16s,border-color .16s !important;
+      }
+      #gx-side-stats #gx-mode[data-mode="auto"] {
+        background: #173e43 !important;
+        border-color: #2d7771 !important;
+        color: #9af2df !important;
+      }
+      #gx-side-stats #gx-mode:hover {
+        background: #36577b !important;
+        border-color: #6c95c5 !important;
+      }
+      #gx-side-stats #gx-mode[data-mode="auto"]:hover { background: #20565b !important; }
+      #gx-side-stats .gx-stream-row,
+      #gx-side-stats .gx-side-row:has(#gx-mode) {
+        align-items: center !important;
       }
       #gx-side-stats .gx-side-title {
         font-weight: 700 !important;
@@ -622,6 +718,12 @@
     set('#gx-speed', Math.round(totalSpeed * 8 / 1024 / 1024));
     set('#gx-auto-status', autoStatus);
     set('#gx-mode', manualConcurrency ? 'Ручной' : 'Авто');
+    const modeButton = document.querySelector('#gx-mode');
+    if (modeButton) {
+      modeButton.dataset.mode = manualConcurrency ? 'manual' : 'auto';
+      modeButton.title = manualConcurrency ? 'Переключить на автоматическую настройку' : 'Переключить на ручную настройку';
+      modeButton.setAttribute('aria-pressed', String(!manualConcurrency));
+    }
     set('#gx-done', doneCount);
     set('#gx-left', leftCount);
     set('#gx-errors', errorCount);
