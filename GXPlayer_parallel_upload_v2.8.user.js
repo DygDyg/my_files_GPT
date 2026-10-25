@@ -2,7 +2,7 @@
 // @name         GXPlayer parallel upload auto + sound
 // @description	 Добавляет паралельную загрузку файлов насайт GXPlayer
 // @namespace    gxplayer-parallel-upload
-// @version      2.9
+// @version      2.10
 // @match        https://gxplayer.xyz/users/upload.php*
 // @icon         https://gxplayer.xyz/favicon.ico
 // @run-at       document-idle
@@ -48,6 +48,7 @@
   let last429 = 0;
   let finishedSoundPlayed = false;
   let retryAllRunning = false;
+  let hideCompleted = false;
   const zone = document.querySelector('#zone-upload');
   const list = document.querySelector('#zone-upload .content-wrapper');
   let input = document.querySelector('#upload');
@@ -118,10 +119,16 @@
       <div class="gx-side-row err"><span>Ошибки</span><b id="gx-errors">0</b></div>
       <div class="gx-side-row"><span>Объём остаток</span><b id="gx-bytes">0</b></div>
       <div class="gx-side-eta">ETA: <b id="gx-eta">—</b></div>
+      <button type="button" id="gx-toggle-completed" aria-pressed="false">🙈 Скрыть загруженные</button>
       <button type="button" id="gx-retry-all" style="display:none">🔄 Повторить все</button>
     `;
     document.body.appendChild(panel);
     panel.querySelector('#gx-retry-all').addEventListener('click', retryAllFailed);
+    panel.querySelector('#gx-toggle-completed').addEventListener('click', () => {
+      hideCompleted = !hideCompleted;
+      for (const job of queue) updateCompletedVisibility(job);
+      updatePanel();
+    });
     panel.querySelector('#gx-mode').addEventListener('click', () => {
       manualConcurrency = !manualConcurrency;
       try {
@@ -177,6 +184,20 @@
         box-shadow: 0 8px 24px rgba(0,0,0,.35) !important;
         pointer-events: auto !important;
       }
+      #gx-side-stats #gx-toggle-completed {
+        display: block !important;
+        width: 100% !important;
+        margin-top: 10px !important;
+        padding: 7px 8px !important;
+        border: 1px solid #36547b !important;
+        border-radius: 7px !important;
+        background: #233b5d !important;
+        color: #d8eaff !important;
+        cursor: pointer !important;
+        font-size: 12px !important;
+      }
+      #gx-side-stats #gx-toggle-completed:hover { background: #36577b !important; }
+      #zone-upload .content-wrapper .gx-card.gx-completed-hidden { display: none !important; }
       #gx-side-stats .gx-stream-control {
         display: inline-flex !important;
         align-items: center !important;
@@ -700,6 +721,10 @@
       .reduce((sum, j) => sum + Math.max(0, j.file.size - (j.loaded || 0)), 0);
   }
 
+  function updateCompletedVisibility(job) {
+    if (job?.item) job.item.classList.toggle('gx-completed-hidden', hideCompleted && job.done);
+  }
+
   function updatePanel() {
     const jobs = liveJobs();
     const doneCount = jobs.filter(j => j.done).length;
@@ -725,6 +750,11 @@
       modeButton.setAttribute('aria-pressed', String(!manualConcurrency));
     }
     set('#gx-done', doneCount);
+    const completedButton = document.querySelector('#gx-toggle-completed');
+    if (completedButton) {
+      completedButton.textContent = hideCompleted ? `👁 Показать загруженные (${doneCount})` : `🙈 Скрыть загруженные (${doneCount})`;
+      completedButton.setAttribute('aria-pressed', String(hideCompleted));
+    }
     set('#gx-left', leftCount);
     set('#gx-errors', errorCount);
     const retryAllButton = document.querySelector('#gx-retry-all');
@@ -754,6 +784,7 @@
     bar.textContent = 'Done';
     job.item.querySelector('.gx-state').textContent = 'Done';
     job.item.querySelector('.gx-cancel')?.remove();
+    updateCompletedVisibility(job);
     const iframe = slug
       ? `<iframe src="${WATCH_URL + slug}" frameborder="0" scrolling="0" allowfullscreen></iframe>`
       : '';
