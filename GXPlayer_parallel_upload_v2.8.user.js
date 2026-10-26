@@ -2,7 +2,7 @@
 // @name         GXPlayer parallel upload auto + sound
 // @description	 Добавляет паралельную загрузку файлов насайт GXPlayer
 // @namespace    gxplayer-parallel-upload
-// @version      2.10
+// @version      2.11
 // @match        https://gxplayer.xyz/users/upload.php*
 // @icon         https://gxplayer.xyz/favicon.ico
 // @run-at       document-idle
@@ -197,6 +197,34 @@
         font-size: 12px !important;
       }
       #gx-side-stats #gx-toggle-completed:hover { background: #36577b !important; }
+      #gx-side-stats #gx-retry-all {
+        display: block;
+        width: 100% !important;
+        box-sizing: border-box !important;
+        margin: 7px 0 0 !important;
+        padding: 8px 10px !important;
+        border: 1px solid #9d515b !important;
+        border-radius: 7px !important;
+        background: #58303b !important;
+        color: #ffe2e6 !important;
+        font: 600 12px/1.4 system-ui, sans-serif !important;
+        text-align: center !important;
+        cursor: pointer !important;
+        box-shadow: none !important;
+        transition: background .16s, border-color .16s !important;
+      }
+      #gx-side-stats #gx-retry-all:hover:not(:disabled) {
+        background: #713846 !important;
+        border-color: #c76c79 !important;
+      }
+      #gx-side-stats #gx-retry-all:focus-visible {
+        outline: 2px solid #ffaeb9 !important;
+        outline-offset: 2px !important;
+      }
+      #gx-side-stats #gx-retry-all:disabled {
+        opacity: .65 !important;
+        cursor: wait !important;
+      }
       #zone-upload .content-wrapper .gx-card.gx-completed-hidden { display: none !important; }
       #gx-side-stats .gx-stream-control {
         display: inline-flex !important;
